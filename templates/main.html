@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Data, Data Everywhere</title>
+	<meta charset="utf-8">
+	<script src="http://d3js.org/d3.v2.js"></script>
+	<link type="text/css" rel="stylesheet" href="/static/style.css" />
+
+</head>
+<body>
+
+	<div id="wrapper">
+		<div class="graph" id="firstDataSet"></div>
+		<div class="graph" id="secondDataSet"></div>
+		<div class="graph" id="thirdDataSet"></div>
+		<div class="graph" id="fourthDataSet"></div>	
+		<div class="graph" id="fifthDataSet"></div>				
+		<div class="caption">
+			<h2>Data, Data Everywhere</h2>
+			<p>By <a href="http://www.http://tonyzaro.com/portfolio/barChart">Tony Zaro</a></p>
+		</div>
+	</div>
+
+	<script type="text/javascript">
+	
+		var w = 200; /*Width and height of svg element*/ 
+		var h = 500;
+
+		var svg = d3.select("div#firstDataSet").append("svg").attr("width",w).attr("height",h);	
+		
+		var svg2 = d3.select("div#secondDataSet").append("svg").attr("width",w).attr("height",h);
+		
+		var svg3 = d3.select("div#thirdDataSet").append("svg").attr("width",w).attr("height",h);		
+		
+		var svg4 = d3.select("div#fourthDataSet").append("svg").attr("width",w).attr("height",h);		
+		
+		var svg5 = d3.select("div#fifthDataSet").append("svg").attr("width",w).attr("height",h);						
+		
+		/*Object to hold a horizontal data set*/
+		function BarChart(numOfDataItems,dataCeiling,barPadding,svgRoot){
+			this.svgRoot = svgRoot; //d3 svg object
+			this.numOfDataItems = typeof numOfDataItems !== 'undefined' ? numOfDataItems : 100;
+			this.dataCeiling = typeof dataCeiling !== 'undefined' ? dataCeiling : 30; // the maximum possible data value
+			this.xRange = d3.scale.linear().domain([0, this.dataCeiling ]).range ([0, w]); //scale on the x-axis
+			this.yRange = d3.scale.linear().domain([0, this.numOfDataItems]).rangeRound([0, h]);  //scale on the y-axis   
+			this.barPadding = typeof barPadding !== 'undefined' ? barPadding : 1;
+			this.dataset = [];
+			this.idOfNewestDataItem = 0;
+			//initialize dataset;
+			for (var i = 0; i < this.numOfDataItems; i++){
+				var dataItem =  {
+								  id : i,
+								  value : Math.floor(Math.random() * this.dataCeiling)
+								}
+				this.dataset.push(dataItem);
+				this.idOfNewestDataItem = i;
+			}
+			
+		}
+
+		BarChart.prototype.updateData = function()
+		{
+		  this.dataset.shift();
+		  this.idOfNewestDataItem += 1;
+		  var newDataItem = {
+		  						id : this.idOfNewestDataItem,
+		  						value : Math.floor(Math.random() * this.dataCeiling)
+						    }
+		  this.dataset.push(newDataItem);
+		};
+
+		BarChart.prototype.drawInitialGraph = function()
+		{
+				var barChartObjectPointer = this;  //needed because in anonymous functions e.g. used to set x attribute this refers to gloabl object (the window)! and not the barChart object.  Here we save a pointer to the barChart object.
+				var rects = this.svgRoot.selectAll("rect")
+						 .data(this.dataset)
+						 .enter()
+						 .append("rect")
+						 .attr("x",function(d,i){  return 0 -.5; 	}  ) 
+						 .attr("y",function(d,i){  return  barChartObjectPointer.yRange(i) -.5; }   )
+						 .attr("height",function(d,i){  return h/barChartObjectPointer.numOfDataItems - barChartObjectPointer.barPadding;  })
+						 .attr("width", function(d,i){ return  barChartObjectPointer.xRange(d.value);  } )
+						 .attr("fill","teal");	
+
+			 	this.svgRoot.append("line") 
+		 			.attr("x1", 0)
+		 			.attr("x2", 0)
+		 			.attr("y1", 0)
+		 			.attr("y2", h - .5)
+		 			.style("stroke", "#000");						 
+		};
+
+
+
+		BarChart.prototype.redraw = function()
+		{
+			var barChartObjectPointer = this;  //needed because in anonymous functions e.g. used to set x attribute this refers to gloabl object (the window)! and not the barChart object.  Here we save a pointer to the barChart object.
+
+			var rects = this.svgRoot.selectAll("rect").data(this.dataset, function(d){ return d.id; }); 
+
+			rects.enter().insert("rect", "line")
+			.attr("x", function(d, i) { return   0 -.5;  })
+			.attr("y", function(d,i) { return barChartObjectPointer.yRange(i+1) - .5 ;  })
+			.attr("height", function(d,i){  return h/barChartObjectPointer.numOfDataItems - barChartObjectPointer.barPadding;})			
+			.attr("width", function(d,i){ return  barChartObjectPointer.xRange(d.value);  } )
+			.attr("fill","teal")
+			.transition()
+			.duration(1000)
+			.attr('y',function(d,i){ return barChartObjectPointer.yRange(i) - .5; });
+
+
+
+			rects.transition()
+			.duration(1000)
+			.attr("y", function(d, i) { return barChartObjectPointer.yRange(i) - .5; });
+
+			rects.exit()
+			.transition()
+			.duration(1000)
+			.attr("y",function(d,i){ return barChartObjectPointer.yRange(i-1) -.5;})
+			.remove(); //kill the bars with no data
+
+
+			
+
+
+		}
+
+
+		//END OF Object definition
+		
+		var bc = new BarChart(35,50,1,svg);
+
+		bc.drawInitialGraph();
+
+		//Animation loop
+		setInterval(function(){
+						bc.updateData();
+						bc.redraw();
+					}
+		,1500);	
+
+		var bc2 = new BarChart(100,5,1,svg2);
+
+		bc2.drawInitialGraph();
+
+		//Animation loop
+		setInterval(function(){
+						bc2.updateData();
+						bc2.redraw();
+					}
+		,1500);	
+
+		var bc3 = new BarChart(150,100,1,svg3);
+
+		bc3.drawInitialGraph();
+
+		//Animation loop
+		setInterval(function(){
+						bc3.updateData();
+						bc3.redraw();
+					}
+		,1500);
+
+		var bc4 = new BarChart(10,100,1,svg4);
+
+		bc4.drawInitialGraph();
+
+		//Animation loop
+		setInterval(function(){
+						bc4.updateData();
+						bc4.redraw();
+					}
+		,1500);
+		
+		var bc5 = new BarChart(40,100,5,svg5);
+
+		bc5.drawInitialGraph();
+
+		//Animation loop
+		setInterval(function(){
+						bc5.updateData();
+						bc5.redraw();
+					}
+		,1500);
+
+		
+		
+	</script>
+
+</body>
+</html>

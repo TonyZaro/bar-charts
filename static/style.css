@@ -1,0 +1,26 @@
+
+	body{
+		margin:0;
+		padding:none;
+		
+	}
+	
+	div#wrapper{
+		width:1100px;
+		height:500px;
+		margin:100px auto 0px auto;
+	}
+	
+	div.graph{
+		float:left;
+		margin:0px 15px 0px auto;
+		width:200px;
+	}
+	
+	.caption{
+		clear:both;
+		padding-top:30px;
+
+	}
+	
+
